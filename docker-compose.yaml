@@ -1,0 +1,63 @@
+services:
+  airflow-metadb:
+    image: postgres:16
+    container_name: airflow-metadb
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow_metadb:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 5s
+      retries: 10
+
+  pg-source:
+    image: postgres:16
+    container_name: pg-source
+    command: ["postgres", "-c", "wal_level=logical", "-c", "max_replication_slots=4"]
+    environment:
+      POSTGRES_USER: source_user
+      POSTGRES_PASSWORD: source_pass
+      POSTGRES_DB: kumparan_source
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_source:/var/lib/postgresql/data
+
+  pg-dwh:
+    image: postgres:16
+    container_name: pg-dwh
+    environment:
+      POSTGRES_USER: dwh_user
+      POSTGRES_PASSWORD: dwh_pass
+      POSTGRES_DB: kumparan_dwh
+    ports:
+      - "5434:5432"
+    volumes:
+      - pg_dwh:/var/lib/postgresql/data
+
+  airflow:
+    image: apache/airflow:2.10.5-python3.11
+    container_name: airflow
+    command: standalone
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-metadb:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__TEST_CONNECTION: Enabled
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    depends_on:
+      airflow-metadb:
+        condition: service_healthy
+
+volumes:
+  airflow_metadb:
+  pg_source:
+  pg_dwh:

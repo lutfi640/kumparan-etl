@@ -1,0 +1,20 @@
+# Log Airflow (dibuat ulang otomatis saat container jalan)
+logs/
+
+# Cache Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment / secret lokal
+.env
+.venv/
+venv/
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
