@@ -11,4 +11,3 @@ SELECT
     to_char(v.viewed_at, 'YYYYMMDD')::int
 FROM bronze.article_views v
 ON CONFLICT (view_id) DO NOTHING;
-aass
